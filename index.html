@@ -3955,5 +3955,66 @@ void main() {
       }, true);
     })();
   </script>
+  <script>
+    (() => {
+      const EXPERIMENT = "proof_order_v1";
+      const STORAGE_KEY = "logicprimal_proof_variant_v1";
+      const allowed = new Set(["control", "variant"]);
+      const forcedVariant = new URLSearchParams(window.location.search).get("proof_variant");
+      let variant = allowed.has(forcedVariant) ? forcedVariant : localStorage.getItem(STORAGE_KEY);
+      if (!allowed.has(variant)) {
+        variant = Math.random() < 0.5 ? "control" : "variant";
+        localStorage.setItem(STORAGE_KEY, variant);
+      }
+      document.documentElement.dataset.proofVariant = variant;
+
+      const track = (eventName) => {
+        const payload = { event: eventName, experiment: EXPERIMENT, variant };
+        const metricsKey = `${EXPERIMENT}_metrics`;
+        const metrics = JSON.parse(localStorage.getItem(metricsKey) || "{}");
+        metrics[eventName] = (metrics[eventName] || 0) + 1;
+        localStorage.setItem(metricsKey, JSON.stringify(metrics));
+        window.dispatchEvent(new CustomEvent("logicprimal:experiment", { detail: payload }));
+        if (Array.isArray(window.dataLayer)) window.dataLayer.push(payload);
+        if (typeof window.plausible === "function") window.plausible(eventName, { props: { experiment: EXPERIMENT, variant } });
+      };
+
+      const findMetric = (value) => [...document.querySelectorAll("#root *")].find((element) => element.children.length === 0 && element.textContent.trim() === value)?.parentElement;
+      const applyExperiment = () => {
+        const metrics = [findMetric("3.2x"), findMetric("180+"), findMetric("24h")];
+        if (metrics.some((metric) => !metric)) return false;
+        const container = metrics[0].parentElement;
+        if (!container || metrics.some((metric) => metric.parentElement !== container)) return false;
+        container.dataset.proofOrder = variant === "variant" ? "volume-first" : "outcome-first";
+        if (variant === "variant") {
+          [metrics[1], metrics[0], metrics[2]].forEach((metric) => container.appendChild(metric));
+        }
+        if (!sessionStorage.getItem(`${EXPERIMENT}_impression`)) {
+          const observer = new IntersectionObserver((entries) => {
+            if (entries.some((entry) => entry.isIntersecting)) {
+              sessionStorage.setItem(`${EXPERIMENT}_impression`, "1");
+              track("proof_impression");
+              observer.disconnect();
+            }
+          }, { threshold: 0.35 });
+          observer.observe(container);
+        }
+        return true;
+      };
+
+      const root = document.getElementById("root");
+      if (root) {
+        const observer = new MutationObserver(() => {
+          if (applyExperiment()) observer.disconnect();
+        });
+        observer.observe(root, { childList: true, subtree: true });
+        applyExperiment();
+      }
+      document.addEventListener("click", (event) => {
+        const link = event.target.closest && event.target.closest('a[href="#contact"]');
+        if (link && sessionStorage.getItem(`${EXPERIMENT}_impression`)) track("proof_contact_click");
+      }, true);
+    })();
+  </script>
 </body>
 </html>
