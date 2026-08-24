@@ -3885,5 +3885,75 @@ void main() {
 </script>
   <script>(function(){function m(a){var h=a.getAttribute("href");if(!h)return;try{var u=new URL(h,document.baseURI);if((u.protocol==="http:"||u.protocol==="https:")&&u.host!==location.host){a.target="_blank";a.rel="noopener noreferrer";}}catch(e){}}function s(){document.querySelectorAll("a[href]").forEach(m);}if(document.readyState!=="loading"){s();}else{document.addEventListener("DOMContentLoaded",s);}document.addEventListener("click",function(e){var a=e.target&&e.target.closest&&e.target.closest("a[href]");if(a){m(a);}},true);})();</script>
   
+  <script>
+    (() => {
+      const EXPERIMENT = "hero_headline_cta_v1";
+      const STORAGE_KEY = "logicprimal_hero_variant_v1";
+      const allowed = new Set(["control", "variant"]);
+      const forcedVariant = new URLSearchParams(window.location.search).get("hero_variant");
+      let variant = allowed.has(forcedVariant) ? forcedVariant : localStorage.getItem(STORAGE_KEY);
+      if (!allowed.has(variant)) {
+        variant = Math.random() < 0.5 ? "control" : "variant";
+        localStorage.setItem(STORAGE_KEY, variant);
+      }
+      document.documentElement.dataset.heroVariant = variant;
+
+      const track = (eventName) => {
+        const payload = { event: eventName, experiment: EXPERIMENT, variant };
+        const metricsKey = `${EXPERIMENT}_metrics`;
+        const metrics = JSON.parse(localStorage.getItem(metricsKey) || "{}");
+        metrics[eventName] = (metrics[eventName] || 0) + 1;
+        localStorage.setItem(metricsKey, JSON.stringify(metrics));
+        window.dispatchEvent(new CustomEvent("logicprimal:experiment", { detail: payload }));
+        if (Array.isArray(window.dataLayer)) window.dataLayer.push(payload);
+        if (typeof window.plausible === "function") window.plausible(eventName, { props: { experiment: EXPERIMENT, variant } });
+      };
+
+      const setExactText = (headline, from, to) => {
+        headline.querySelectorAll("*").forEach((element) => {
+          if (element.children.length === 0 && element.textContent.trim() === from) element.textContent = to;
+        });
+      };
+
+      const applyExperiment = () => {
+        const root = document.getElementById("root");
+        const headline = root && root.querySelector("h1");
+        if (!headline || !headline.textContent.includes("WE BUILD")) return false;
+        if (variant === "variant") {
+          setExactText(headline, "WE BUILD", "MAKE THEM");
+          setExactText(headline, "PERSONAL", "STOP.");
+          setExactText(headline, "BRANDS", "AND");
+          setExactText(headline, "THAT SELL.", "BUY.");
+          const cta = Array.from(root.querySelectorAll("a")).find((link) => link.textContent.trim() === "VIEW UGC REELS →");
+          if (cta) {
+            cta.textContent = "GET MY GROWTH MAP →";
+            cta.href = "#contact";
+            cta.dataset.abHeroCta = "true";
+          }
+        } else {
+          const cta = Array.from(root.querySelectorAll("a")).find((link) => link.textContent.trim() === "VIEW UGC REELS →");
+          if (cta) cta.dataset.abHeroCta = "true";
+        }
+        if (!sessionStorage.getItem(`${EXPERIMENT}_impression`)) {
+          sessionStorage.setItem(`${EXPERIMENT}_impression`, "1");
+          track("hero_impression");
+        }
+        return true;
+      };
+
+      const root = document.getElementById("root");
+      if (root) {
+        const observer = new MutationObserver(() => {
+          if (applyExperiment()) observer.disconnect();
+        });
+        observer.observe(root, { childList: true, subtree: true });
+        applyExperiment();
+      }
+      document.addEventListener("click", (event) => {
+        const cta = event.target.closest && event.target.closest("[data-ab-hero-cta]");
+        if (cta) track("hero_cta_click");
+      }, true);
+    })();
+  </script>
 </body>
 </html>
