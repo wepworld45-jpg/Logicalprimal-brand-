@@ -22,3 +22,17 @@ The page also runs `proof_order_v1`. The control keeps the existing outcome-firs
 Assignment is stored in `localStorage` under `logicprimal_proof_variant_v1`. For QA, append `?proof_variant=control` or `?proof_variant=variant`. The experiment emits `proof_impression` when the proof band enters the viewport and `proof_contact_click` when a visitor later clicks a contact link. These events use the same custom event, `dataLayer`, Plausible, and local QA-counter hooks as the hero experiment.
 
 The hypothesis is that leading with visible creative volume may build enough trust to increase progression to the contact section, compared with leading with the performance metric. Because the site has no verified testimonials or review corpus, this test intentionally does not add fabricated social proof.
+
+## Coordinated MVT: Hero × Proof × Exit
+
+The page now supports `logicprimal_mvt_v1`, an 8-cell, 2×2×2 multivariate test. Each visitor receives one stable combination, stored under `logicprimal_mvt_v1`, and all downstream experiment events include the combination ID.
+
+| Factor | 0 / control | 1 / variation |
+| --- | --- | --- |
+| H — hero | Original “WE BUILD PERSONAL BRANDS THAT SELL.” and `VIEW UGC REELS →` | “MAKE THEM STOP. AND BUY.” and `GET MY GROWTH MAP →` |
+| P — proof | Outcome-first metric order | Volume-first metric order |
+| X — exit | Desktop top-edge exit; mobile at 65% scroll or 45 seconds | Desktop top-edge exit plus 20-second recovery; mobile at 55% scroll or 30 seconds |
+
+Combination IDs use the format `H0P0X0` through `H1P1X1`; for example, `H1P1X1` combines the variation for all three factors. Use `?mvt=H1P1X1` to force a complete combination for QA. Individual overrides remain available with `?hero_variant=`, `?proof_variant=`, and `?exit_variant=`. The popup QA override remains `?exit_popup=1`.
+
+The primary business outcome is a completed lead submission from the main form or exit popup. Supporting events are `mvt_assignment`, `hero_impression`, `hero_cta_click`, `proof_impression`, `proof_contact_click`, `popup_impression`, `popup_open`, `popup_submit`, and `popup_dismiss`. Analyze by complete combination ID first, then by each factor and interaction. Do not declare a winner until each cell has adequate real traffic and lead volume; the repository contains no simulated performance results.

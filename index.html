@@ -3887,11 +3887,43 @@ void main() {
   
   <script>
     (() => {
+      const EXPERIMENT = "logicprimal_mvt_v1";
+      const STORAGE_KEY = "logicprimal_mvt_v1";
+      const combos = ["H0P0X0", "H0P0X1", "H0P1X0", "H0P1X1", "H1P0X0", "H1P0X1", "H1P1X0", "H1P1X1"];
+      const params = new URLSearchParams(window.location.search);
+      const forcedCombo = params.get("mvt");
+      const isCombo = (value) => /^H[01]P[01]X[01]$/.test(value || "");
+      let id = isCombo(forcedCombo) ? forcedCombo : null;
+      if (!id) {
+        try { id = JSON.parse(localStorage.getItem(STORAGE_KEY) || "null")?.id; } catch (_) {}
+      }
+      if (!isCombo(id)) {
+        id = combos[Math.floor(Math.random() * combos.length)];
+        localStorage.setItem(STORAGE_KEY, JSON.stringify({ id, assignedAt: new Date().toISOString() }));
+      }
+      const forcedHero = params.get("hero_variant");
+      const forcedProof = params.get("proof_variant");
+      const forcedExit = params.get("exit_variant");
+      const mvt = {
+        id,
+        hero: forcedHero === "control" || forcedHero === "variant" ? forcedHero : id[1] === "1" ? "variant" : "control",
+        proof: forcedProof === "control" || forcedProof === "variant" ? forcedProof : id[3] === "1" ? "variant" : "control",
+        exit: forcedExit === "control" || forcedExit === "variant" ? forcedExit : id[5] === "1" ? "variant" : "control"
+      };
+      window.logicprimalMVT = mvt;
+      document.documentElement.dataset.mvt = id;
+      const payload = { event: "mvt_assignment", experiment: EXPERIMENT, combination: id, hero: mvt.hero, proof: mvt.proof, exit: mvt.exit };
+      window.dispatchEvent(new CustomEvent("logicprimal:experiment", { detail: payload }));
+      if (Array.isArray(window.dataLayer)) window.dataLayer.push(payload);
+    })();
+  </script>
+  <script>
+    (() => {
       const EXPERIMENT = "hero_headline_cta_v1";
       const STORAGE_KEY = "logicprimal_hero_variant_v1";
       const allowed = new Set(["control", "variant"]);
       const forcedVariant = new URLSearchParams(window.location.search).get("hero_variant");
-      let variant = allowed.has(forcedVariant) ? forcedVariant : localStorage.getItem(STORAGE_KEY);
+      let variant = allowed.has(forcedVariant) ? forcedVariant : (window.logicprimalMVT?.hero || localStorage.getItem(STORAGE_KEY));
       if (!allowed.has(variant)) {
         variant = Math.random() < 0.5 ? "control" : "variant";
         localStorage.setItem(STORAGE_KEY, variant);
@@ -3899,7 +3931,7 @@ void main() {
       document.documentElement.dataset.heroVariant = variant;
 
       const track = (eventName) => {
-        const payload = { event: eventName, experiment: EXPERIMENT, variant };
+        const payload = { event: eventName, experiment: EXPERIMENT, variant, combination: window.logicprimalMVT?.id || "independent" };
         const metricsKey = `${EXPERIMENT}_metrics`;
         const metrics = JSON.parse(localStorage.getItem(metricsKey) || "{}");
         metrics[eventName] = (metrics[eventName] || 0) + 1;
@@ -3961,7 +3993,7 @@ void main() {
       const STORAGE_KEY = "logicprimal_proof_variant_v1";
       const allowed = new Set(["control", "variant"]);
       const forcedVariant = new URLSearchParams(window.location.search).get("proof_variant");
-      let variant = allowed.has(forcedVariant) ? forcedVariant : localStorage.getItem(STORAGE_KEY);
+      let variant = allowed.has(forcedVariant) ? forcedVariant : (window.logicprimalMVT?.proof || localStorage.getItem(STORAGE_KEY));
       if (!allowed.has(variant)) {
         variant = Math.random() < 0.5 ? "control" : "variant";
         localStorage.setItem(STORAGE_KEY, variant);
@@ -3969,7 +4001,7 @@ void main() {
       document.documentElement.dataset.proofVariant = variant;
 
       const track = (eventName) => {
-        const payload = { event: eventName, experiment: EXPERIMENT, variant };
+        const payload = { event: eventName, experiment: EXPERIMENT, variant, combination: window.logicprimalMVT?.id || "independent" };
         const metricsKey = `${EXPERIMENT}_metrics`;
         const metrics = JSON.parse(localStorage.getItem(metricsKey) || "{}");
         metrics[eventName] = (metrics[eventName] || 0) + 1;
@@ -4022,6 +4054,7 @@ void main() {
       const SHOWN_KEY = `${EXPERIMENT}_shown`;
       const intentKey = "logicprimal_last_intent";
       const forcedPopup = new URLSearchParams(window.location.search).get("exit_popup") === "1";
+      const exitVariant = window.logicprimalMVT?.exit || "control";
       const isMobile = window.matchMedia("(max-width: 767px)").matches;
       const canShow = () => (forcedPopup || !sessionStorage.getItem(SHOWN_KEY)) && !document.querySelector('[role="dialog"][data-exit-popup="true"]');
       let intent = localStorage.getItem(intentKey) || "your next growth move";
@@ -4136,11 +4169,16 @@ void main() {
           const maybeTrigger = () => {
             if (triggered || !canShow()) return;
             const scrolled = window.scrollY / Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-            if (scrolled > 0.65) { triggered = true; openPopup(); window.removeEventListener("scroll", maybeTrigger); }
+            const threshold = exitVariant === "variant" ? 0.55 : 0.65;
+            if (scrolled > threshold) { triggered = true; openPopup(); window.removeEventListener("scroll", maybeTrigger); }
           };
           window.addEventListener("scroll", maybeTrigger, { passive: true });
-          window.setTimeout(() => { if (!triggered) { triggered = true; openPopup(); } }, 45000);
+          const fallbackDelay = exitVariant === "variant" ? 30000 : 45000;
+          window.setTimeout(() => { if (!triggered) { triggered = true; openPopup(); } }, fallbackDelay);
         } else {
+          if (exitVariant === "variant") {
+            window.setTimeout(() => { if (!opened && canShow()) openPopup(); }, 20000);
+          }
           document.addEventListener("mouseout", (event) => {
             if (opened || event.relatedTarget || event.clientY > 8 || !canShow()) return;
             window.setTimeout(openPopup, 250);
