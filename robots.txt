@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://wepworld45-jpg.github.io/Logicalprimal-brand-/sitemap.xml
