@@ -4016,5 +4016,140 @@ void main() {
       }, true);
     })();
   </script>
+  <script>
+    (() => {
+      const EXPERIMENT = "exit_intent_popup_v1";
+      const SHOWN_KEY = `${EXPERIMENT}_shown`;
+      const intentKey = "logicprimal_last_intent";
+      const forcedPopup = new URLSearchParams(window.location.search).get("exit_popup") === "1";
+      const isMobile = window.matchMedia("(max-width: 767px)").matches;
+      const canShow = () => (forcedPopup || !sessionStorage.getItem(SHOWN_KEY)) && !document.querySelector('[role="dialog"][data-exit-popup="true"]');
+      let intent = localStorage.getItem(intentKey) || "your next growth move";
+      let opened = false;
+      let lastFocused = null;
+
+      const track = (eventName) => {
+        const payload = { event: eventName, experiment: EXPERIMENT, intent };
+        const metricsKey = `${EXPERIMENT}_metrics`;
+        const metrics = JSON.parse(localStorage.getItem(metricsKey) || "{}");
+        metrics[eventName] = (metrics[eventName] || 0) + 1;
+        localStorage.setItem(metricsKey, JSON.stringify(metrics));
+        window.dispatchEvent(new CustomEvent("logicprimal:experiment", { detail: payload }));
+        if (Array.isArray(window.dataLayer)) window.dataLayer.push(payload);
+        if (typeof window.plausible === "function") window.plausible(eventName, { props: { experiment: EXPERIMENT, intent } });
+      };
+
+      const personalize = (value) => {
+        const normalized = String(value || "").toLowerCase();
+        if (normalized.includes("ugc")) return "your UGC ads";
+        if (normalized.includes("brand")) return "your personal brand";
+        if (normalized.includes("influence")) return "your influence model";
+        return "your next growth move";
+      };
+
+      document.addEventListener("click", (event) => {
+        const link = event.target.closest && event.target.closest("a[href]");
+        if (!link) return;
+        const href = link.getAttribute("href") || "";
+        if (href === "#ugc") intent = "your UGC ads";
+        else if (href === "#services") intent = "your personal brand";
+        else if (href === "#models") intent = "your influence model";
+        localStorage.setItem(intentKey, intent);
+      }, true);
+      document.addEventListener("change", (event) => {
+        if (event.target && event.target.name === "service") {
+          intent = personalize(event.target.value);
+          localStorage.setItem(intentKey, intent);
+        }
+      }, true);
+
+      const closePopup = (reason = "dismiss") => {
+        const popup = document.querySelector('[role="dialog"][data-exit-popup="true"]');
+        if (!popup) return;
+        popup.remove();
+        document.body.style.overflow = "";
+        if (lastFocused && typeof lastFocused.focus === "function") lastFocused.focus();
+        if (reason === "dismiss") track("popup_dismiss");
+      };
+
+      const openPopup = () => {
+        if (!canShow()) return;
+        sessionStorage.setItem(SHOWN_KEY, "1");
+        opened = true;
+        lastFocused = document.activeElement;
+        track("popup_impression");
+        const overlay = document.createElement("div");
+        overlay.dataset.exitPopup = "true";
+        overlay.setAttribute("role", "dialog");
+        overlay.setAttribute("aria-modal", "true");
+        overlay.setAttribute("aria-labelledby", "logicprimal-exit-title");
+        overlay.style.cssText = "position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:20px;background:rgba(0,0,0,.72);backdrop-filter:blur(12px);font-family:Inter,system-ui,sans-serif";
+        overlay.innerHTML = `<div data-exit-card="true" style="position:relative;width:min(100%,560px);border:1px solid rgba(232,196,138,.28);border-radius:24px;padding:30px;background:linear-gradient(145deg,rgba(33,30,24,.98),rgba(12,12,11,.98));box-shadow:0 24px 100px rgba(0,0,0,.6);color:#fff">
+          <button type="button" data-exit-close aria-label="Close popup" style="position:absolute;top:14px;right:16px;border:0;background:transparent;color:rgba(255,255,255,.62);font-size:24px;line-height:1;cursor:pointer">×</button>
+          <div style="margin-bottom:18px;color:#e8c48a;font-size:10px;letter-spacing:.18em;text-transform:uppercase">ONE LAST THING</div>
+          <h2 id="logicprimal-exit-title" style="margin:0;max-width:430px;font-size:clamp(28px,5vw,44px);line-height:.98;letter-spacing:-.04em;font-weight:700">Want a sharper plan for ${intent}?</h2>
+          <p style="margin:16px 0 22px;max-width:440px;color:rgba(255,255,255,.66);font-size:14px;line-height:1.55">Leave your email and we’ll send the right next move for turning attention into pipeline. No pitch deck. No pressure.</p>
+          <form action="https://formsubmit.co/mminions58@email.com" method="POST" data-exit-form>
+            <input type="hidden" name="_subject" value="LogicPrimal exit-intent lead">
+            <input type="hidden" name="_next" value="https://wepworld45-jpg.github.io/Logicalprimal-brand-/thank-you.html">
+            <input type="hidden" name="source" value="exit-intent-popup">
+            <input type="hidden" name="interest" value="${intent.replace(/"/g, "&quot;")}">
+            <label style="display:block;color:rgba(255,255,255,.58);font-size:10px;letter-spacing:.16em;text-transform:uppercase" for="exit-email">EMAIL ADDRESS</label>
+            <input id="exit-email" name="email" type="email" autocomplete="email" required placeholder="you@brand.com" style="box-sizing:border-box;width:100%;height:50px;margin-top:8px;padding:0 16px;border:1px solid rgba(255,255,255,.14);border-radius:999px;background:rgba(255,255,255,.06);color:#fff;outline:none;font:inherit">
+            <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:14px">
+              <button type="submit" style="height:48px;padding:0 22px;border:0;border-radius:999px;background:#e8c48a;color:#111;font:600 11px Inter,system-ui,sans-serif;letter-spacing:.14em;cursor:pointer">SEND MY NEXT MOVE →</button>
+              <span style="color:rgba(255,255,255,.38);font-size:11px">Reply within 24h</span>
+            </div>
+            <p style="margin:14px 0 0;color:rgba(255,255,255,.34);font-size:10px;line-height:1.45">By submitting, you agree to be contacted about this inquiry. You can close this any time.</p>
+          </form>
+          <button type="button" data-exit-full-form style="margin-top:18px;padding:0;border:0;background:transparent;color:rgba(255,255,255,.52);font:11px Inter,system-ui,sans-serif;text-decoration:underline;cursor:pointer">Prefer the full inquiry form?</button>
+        </div>`;
+        document.body.appendChild(overlay);
+        document.body.style.overflow = "hidden";
+        track("popup_open");
+        const email = overlay.querySelector("#exit-email");
+        if (email) email.focus();
+        overlay.addEventListener("click", (event) => {
+          if (event.target === overlay || event.target.closest("[data-exit-close]")) closePopup();
+          if (event.target.closest("[data-exit-full-form]")) {
+            closePopup("navigate");
+            document.querySelector("#contact")?.scrollIntoView({ behavior: "smooth", block: "start" });
+          }
+        });
+        overlay.querySelector("[data-exit-form]").addEventListener("submit", () => track("popup_submit"), { once: true });
+        overlay.addEventListener("keydown", (event) => {
+          if (event.key === "Escape") return closePopup();
+          if (event.key !== "Tab") return;
+          const focusables = [...overlay.querySelectorAll("button, input")].filter((element) => !element.disabled);
+          if (!focusables.length) return;
+          const first = focusables[0];
+          const last = focusables[focusables.length - 1];
+          if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+          else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+        });
+      };
+
+      const schedule = () => {
+        if (forcedPopup) return window.setTimeout(openPopup, 80);
+        if (isMobile) {
+          let triggered = false;
+          const maybeTrigger = () => {
+            if (triggered || !canShow()) return;
+            const scrolled = window.scrollY / Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
+            if (scrolled > 0.65) { triggered = true; openPopup(); window.removeEventListener("scroll", maybeTrigger); }
+          };
+          window.addEventListener("scroll", maybeTrigger, { passive: true });
+          window.setTimeout(() => { if (!triggered) { triggered = true; openPopup(); } }, 45000);
+        } else {
+          document.addEventListener("mouseout", (event) => {
+            if (opened || event.relatedTarget || event.clientY > 8 || !canShow()) return;
+            window.setTimeout(openPopup, 250);
+          }, { once: true });
+        }
+      };
+      if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", schedule, { once: true });
+      else schedule();
+    })();
+  </script>
 </body>
 </html>
