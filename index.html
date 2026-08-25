@@ -449,6 +449,30 @@
     let touchActive = false;
 
     const getTriggers = () => [...document.querySelectorAll("[data-reel-src]")];
+    const warmVideoCache = new Map();
+
+    const getConnection = () => navigator.connection || navigator.mozConnection || navigator.webkitConnection || null;
+    const isDataSaverEnabled = () => Boolean(getConnection()?.saveData);
+    const isSlowConnection = () => ["slow-2g", "2g"].includes(getConnection()?.effectiveType);
+    const canPreloadAhead = () => !isDataSaverEnabled() && !isSlowConnection();
+
+    const warmVideo = (src) => {
+      if (!src || warmVideoCache.has(src) || isDataSaverEnabled()) return;
+      const warmer = document.createElement("video");
+      warmer.muted = true;
+      warmer.playsInline = true;
+      warmer.preload = "auto";
+      warmer.src = src;
+      warmer.setAttribute("aria-hidden", "true");
+      warmer.style.position = "fixed";
+      warmer.style.width = "1px";
+      warmer.style.height = "1px";
+      warmer.style.opacity = "0";
+      warmer.style.pointerEvents = "none";
+      document.body.append(warmer);
+      warmer.load();
+      warmVideoCache.set(src, warmer);
+    };
 
     const getFocusable = (modal) => [...modal.querySelectorAll("button, video")].filter((element) => !element.disabled);
 
@@ -519,8 +543,12 @@
       const previewObserver = canObserve ? new IntersectionObserver((entries) => {
         entries.forEach((entry) => {
           const video = entry.target;
-          if (entry.isIntersecting) loadPreview(video);
-          else video.pause();
+          if (entry.isIntersecting) {
+            loadPreview(video);
+            const index = previews.indexOf(video);
+            const nextPreview = previews[index + 1];
+            if (nextPreview && canPreloadAhead()) warmVideo(nextPreview.dataset.previewSrc);
+          } else video.pause();
         });
       }, { rootMargin: "220px 0px", threshold: 0.01 }) : null;
 
@@ -779,6 +807,10 @@
         video.src = triggerForIndex.dataset.reelSrc || "";
         video.load();
         video.play().catch(() => {});
+        if (canPreloadAhead()) {
+          const nextTrigger = triggers[currentIndex + 1];
+          if (nextTrigger) warmVideo(nextTrigger.dataset.reelSrc);
+        }
         soundButton.textContent = modalMuted ? "SOUND OFF" : "SOUND ON";
         soundButton.setAttribute("aria-label", modalMuted ? "Unmute video" : "Mute video");
         counter.textContent = `${currentIndex + 1} / ${triggers.length}`;
@@ -874,5 +906,12 @@
     else startPreviewObserver();
   })();
 </script>
+  <script>
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js", { scope: "./" }).catch(() => {});
+      });
+    }
+  </script>
 </body>
 </html>
