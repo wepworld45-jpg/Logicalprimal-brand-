@@ -3833,3 +3833,180 @@ void main() {
         html{font-family:Inter,system-ui,sans-serif;scroll-behavior:smooth}
         @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
       `})]})}MD.createRoot(document.getElementById("root")).render(x(LD.default.StrictMode,{children:x(AZ,{})}));
+
+
+/* LOGICPRIMAL STRATEGY SECTIONS */
+(function () {
+  const strategyStyles = `
+    .lp-strategy-wrap{position:relative;z-index:10;padding:0 24px 96px;color:#f7f3ec}
+    .lp-strategy-shell{max-width:1180px;margin:0 auto}
+    .lp-jumpbar{display:flex;flex-wrap:wrap;gap:10px;padding:16px 0 34px;border-top:1px solid rgba(255,255,255,.08)}
+    .lp-jumpbar a{color:rgba(255,255,255,.64);font-size:10px;letter-spacing:.16em;text-decoration:none;border:1px solid rgba(255,255,255,.1);border-radius:999px;padding:9px 13px;transition:.2s ease}
+    .lp-jumpbar a:hover,.lp-jumpbar a:focus-visible{color:#080808;background:#e8c48a;border-color:#e8c48a;outline:none}
+    .lp-strategy-section{padding:82px 0;border-top:1px solid rgba(255,255,255,.07)}
+    .lp-kicker{margin:0 0 16px;color:#e8c48a;font-size:10px;letter-spacing:.2em;font-weight:700}
+    .lp-title{max-width:850px;margin:0;color:#fff;font-size:clamp(34px,6vw,76px);line-height:.96;letter-spacing:-.055em;font-weight:800}
+    .lp-title em{color:#e8c48a;font-style:normal}
+    .lp-lede{max-width:640px;margin:20px 0 0;color:rgba(255,255,255,.62);font-size:16px;line-height:1.65}
+    .lp-case-grid{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:18px;margin-top:36px}
+    .lp-panel{border:1px solid rgba(255,255,255,.1);border-radius:24px;background:linear-gradient(145deg,rgba(255,255,255,.07),rgba(255,255,255,.025));padding:28px;box-shadow:0 24px 70px rgba(0,0,0,.18)}
+    .lp-panel h3{margin:0 0 12px;color:#fff;font-size:24px;letter-spacing:-.03em}
+    .lp-panel p{margin:0;color:rgba(255,255,255,.62);line-height:1.65}
+    .lp-label{display:block;margin:20px 0 7px;color:#e8c48a;font-size:10px;letter-spacing:.18em;font-weight:700}
+    .lp-deliverables{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:16px}
+    .lp-deliverable{border-radius:15px;background:#101010;border:1px solid rgba(255,255,255,.08);padding:15px;color:#fff;font-size:12px;line-height:1.4}
+    .lp-link{display:inline-flex;align-items:center;gap:8px;margin-top:24px;color:#080808;background:#e8c48a;border-radius:999px;padding:12px 16px;font-size:10px;font-weight:800;letter-spacing:.12em;text-decoration:none;transition:transform .2s ease,background .2s ease}
+    .lp-link:hover,.lp-link:focus-visible{transform:translateY(-2px);background:#f4d8a8;outline:none}
+    .lp-flow{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:34px}
+    .lp-lab-step{min-height:155px;text-align:left;border:1px solid rgba(255,255,255,.1);border-radius:20px;background:#0e0e0e;color:#fff;padding:20px;cursor:pointer;transition:.25s ease}
+    .lp-lab-step:hover,.lp-lab-step:focus-visible,.lp-lab-step[aria-pressed=true]{border-color:#e8c48a;background:linear-gradient(145deg,rgba(232,196,138,.18),rgba(255,255,255,.03));transform:translateY(-5px);outline:none}
+    .lp-step-num{display:block;color:#e8c48a;font-size:11px;letter-spacing:.14em;margin-bottom:28px}
+    .lp-step-name{display:block;font-size:16px;font-weight:800;letter-spacing:-.02em}
+    .lp-step-detail{margin-top:20px;min-height:24px;color:rgba(255,255,255,.55);font-size:13px;line-height:1.5}
+    .lp-ai-grid{display:grid;grid-template-columns:1fr 1fr;gap:18px;align-items:stretch;margin-top:34px}
+    .lp-ai-sequence{display:grid;gap:10px;align-content:center}
+    .lp-ai-node{display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.1);padding:14px 0;color:#fff;font-size:16px}
+    .lp-ai-node span{color:#e8c48a;font-size:10px;letter-spacing:.16em}
+    .lp-capabilities{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:34px}
+    .lp-capability{min-height:260px;position:relative;overflow:hidden;border-radius:22px;border:1px solid rgba(255,255,255,.12);background:#111;transition:transform .25s ease,border-color .25s ease}
+    .lp-capability:hover,.lp-capability:focus-within{transform:translateY(-7px);border-color:rgba(232,196,138,.8)}
+    .lp-capability img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.28;transition:transform .5s ease,opacity .3s ease}
+    .lp-capability:hover img{transform:scale(1.08);opacity:.42}
+    .lp-capability-content{position:relative;z-index:1;display:flex;min-height:260px;flex-direction:column;justify-content:space-between;padding:20px;background:linear-gradient(180deg,rgba(0,0,0,.1),rgba(0,0,0,.84))}
+    .lp-capability-num{color:#e8c48a;font-size:11px;letter-spacing:.16em}
+    .lp-capability h3{margin:0;color:#fff;font-size:22px;letter-spacing:-.03em}
+    .lp-capability p{margin:8px 0 0;color:rgba(255,255,255,.62);font-size:12px;line-height:1.5}
+    .lp-principles{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:34px}
+    .lp-principle{border-top:2px solid #e8c48a;padding-top:18px}
+    .lp-principle strong{display:block;color:#e8c48a;font-size:11px;letter-spacing:.16em}
+    .lp-principle h3{margin:18px 0 8px;color:#fff;font-size:28px}
+    .lp-principle p{margin:0;color:rgba(255,255,255,.58);line-height:1.6}
+    .lp-audience-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:34px}
+    .lp-audience{border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:20px;background:#0e0e0e}
+    .lp-audience h3{margin:0 0 10px;color:#fff;font-size:17px}
+    .lp-audience p{margin:0;color:rgba(255,255,255,.58);font-size:12px;line-height:1.55}
+    .lp-scale-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-top:30px}
+    .lp-scale{border:1px solid rgba(255,255,255,.1);border-radius:18px;padding:24px;background:#0e0e0e}
+    .lp-scale h3{margin:0 0 10px;color:#fff;font-size:18px}
+    .lp-scale p{margin:0;color:rgba(255,255,255,.58);line-height:1.55;font-size:13px}
+    .lp-intake{display:flex;align-items:center;justify-content:space-between;gap:20px;margin-top:32px;border:1px solid rgba(232,196,138,.3);border-radius:22px;padding:24px;background:linear-gradient(90deg,rgba(232,196,138,.12),rgba(255,255,255,.03))}
+    .lp-intake strong{display:block;color:#e8c48a;font-size:10px;letter-spacing:.18em;margin-bottom:8px}
+    .lp-intake h3{margin:0;color:#fff;font-size:clamp(22px,3vw,36px);letter-spacing:-.04em}
+    .lp-intake p{margin:8px 0 0;color:rgba(255,255,255,.58)}
+    .lp-form-extra{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px}
+    .lp-form-extra label{display:block;color:rgba(255,255,255,.58);font-size:10px;letter-spacing:.16em}
+    .lp-form-extra input,.lp-form-extra select{display:block;width:100%;height:48px;margin-top:8px;border:1px solid rgba(255,255,255,.1);border-radius:999px;background:rgba(255,255,255,.06);color:#fff;padding:0 16px;font-size:14px;outline:none}
+    .lp-form-extra input:focus,.lp-form-extra select:focus{border-color:rgba(232,196,138,.65)}
+    @media(max-width:900px){.lp-case-grid,.lp-ai-grid{grid-template-columns:1fr}.lp-flow{grid-template-columns:repeat(3,1fr)}.lp-capabilities{grid-template-columns:repeat(2,1fr)}.lp-audience-grid{grid-template-columns:repeat(2,1fr)}}
+    @media(max-width:620px){.lp-strategy-wrap{padding:0 16px 64px}.lp-strategy-section{padding:58px 0}.lp-flow{grid-template-columns:1fr 1fr}.lp-capabilities,.lp-principles,.lp-scale-grid{grid-template-columns:1fr}.lp-audience-grid{grid-template-columns:1fr}.lp-deliverables{grid-template-columns:1fr}.lp-intake{align-items:flex-start;flex-direction:column}.lp-form-extra{grid-template-columns:1fr}.lp-title{font-size:clamp(36px,12vw,58px)}}
+    @media(prefers-reduced-motion:reduce){.lp-lab-step,.lp-capability,.lp-capability img,.lp-link{transition:none!important}}
+  `;
+  const strategyHtml = `
+    <div class="lp-strategy-wrap" id="lp-strategy-sections">
+      <div class="lp-strategy-shell">
+        <nav class="lp-jumpbar" aria-label="Portfolio sections">
+          <a href="#lp-work">WORK</a><a href="#lp-services">SERVICES</a><a href="#lp-lab">LAB</a><a href="#lp-about">ABOUT</a><a href="#contact">START A PROJECT</a>
+        </nav>
+        <section class="lp-strategy-section" id="lp-work">
+          <p class="lp-kicker">SELECTED WORK • STRATEGY FIRST</p>
+          <h2 class="lp-title">Every project should have a <em>reason to exist.</em></h2>
+          <p class="lp-lede">The work is not just a collection of videos. It is the problem, the idea, the creative system, and the assets that move the audience toward action.</p>
+          <div class="lp-case-grid">
+            <article class="lp-panel">
+              <p class="lp-kicker">HOTEL / HOSPITALITY</p><h3>A first-person visual story for desire.</h3>
+              <span class="lp-label">THE PROBLEM</span><p>Traditional hotel content looked polished but failed to create desire.</p>
+              <span class="lp-label">THE IDEA</span><p>Turn the hotel experience into a first-person visual story.</p>
+              <span class="lp-label">CREATIVE</span><p>UGC + cinematic AI production.</p>
+              <span class="lp-label">DELIVERABLES</span>
+              <div class="lp-deliverables"><span class="lp-deliverable">3 UGC ads</span><span class="lp-deliverable">2 cinematic films</span><span class="lp-deliverable">12 social assets</span></div>
+              <a class="lp-link" href="#ugc">WATCH CASE STUDY →</a>
+            </article>
+            <aside class="lp-panel"><p class="lp-kicker">THE SHIFT</p><h3>From editor to creative strategist.</h3><p>Each piece now answers a commercial question: what should people feel, understand, and do next?</p><a class="lp-link" href="#lp-lab">SEE THE PROCESS →</a></aside>
+          </div>
+        </section>
+        <section class="lp-strategy-section" id="lp-lab">
+          <p class="lp-kicker">THE CREATIVE LAB</p><h2 class="lp-title">A process for finding <em>what works.</em></h2>
+          <p class="lp-lede">Instead of pretending every piece is a finished campaign, the lab shows the experimentation behind the result.</p>
+          <div class="lp-flow" role="list" aria-label="Creative Lab process">
+            <button class="lp-lab-step" type="button" aria-pressed="true" data-lab-detail="Start with multiple behavioral angles, not one favorite line."><span class="lp-step-num">01</span><span class="lp-step-name">HOOK TEST</span></button>
+            <button class="lp-lab-step" type="button" aria-pressed="false" data-lab-detail="Curiosity, fear, desire, and social proof become testable hypotheses."><span class="lp-step-num">02</span><span class="lp-step-name">CONCEPT TEST</span></button>
+            <button class="lp-lab-step" type="button" aria-pressed="false" data-lab-detail="A / B / C variations make the creative direction visible."><span class="lp-step-num">03</span><span class="lp-step-name">CREATIVE</span></button>
+            <button class="lp-lab-step" type="button" aria-pressed="false" data-lab-detail="Learn what earned attention, retention, and intent."><span class="lp-step-num">04</span><span class="lp-step-name">LEARN</span></button>
+            <button class="lp-lab-step" type="button" aria-pressed="false" data-lab-detail="Feed the learning back into the next iteration."><span class="lp-step-num">05</span><span class="lp-step-name">ITERATE</span></button>
+          </div>
+          <p class="lp-step-detail" data-lab-output aria-live="polite">Start with multiple behavioral angles, not one favorite line.</p>
+        </section>
+        <section class="lp-strategy-section" id="lp-services">
+          <p class="lp-kicker">AI-NATIVE PRODUCTION</p><h2 class="lp-title">More creative directions before committing <em>resources.</em></h2>
+          <div class="lp-ai-grid"><div class="lp-panel"><h3>Traditional production makes every iteration expensive.</h3><p>AI lets us explore more creative directions before committing resources. The advantage is not the tool; it is the number of useful hypotheses we can test.</p></div><div class="lp-panel lp-ai-sequence" aria-label="AI-native production sequence"><div class="lp-ai-node"><span>01</span>CONCEPT</div><div class="lp-ai-node"><span>02</span>STORYBOARD</div><div class="lp-ai-node"><span>03</span>PRODUCT</div><div class="lp-ai-node"><span>04</span>ENVIRONMENT</div><div class="lp-ai-node"><span>05</span>FILM → AD</div></div></div>
+        </section>
+        <section class="lp-strategy-section" id="lp-capabilities">
+          <p class="lp-kicker">CAPABILITIES</p><h2 class="lp-title">Built for brands that need <em>attention.</em></h2>
+          <div class="lp-capabilities">
+            <article class="lp-capability" tabindex="0"><img src="videos/posters/ugc-01.webp" alt="UGC creator preview" loading="lazy" decoding="async"><div class="lp-capability-content"><span class="lp-capability-num">01</span><div><h3>UGC ADS</h3><p>Hooks, scripts, creators, product demos, and performance creatives.</p></div></div></article>
+            <article class="lp-capability" tabindex="0"><img src="videos/posters/ugc-02.webp" alt="AI product film preview" loading="lazy" decoding="async"><div class="lp-capability-content"><span class="lp-capability-num">02</span><div><h3>AI PRODUCT FILMS</h3><p>Cinematic campaigns without traditional production limitations.</p></div></div></article>
+            <article class="lp-capability" tabindex="0"><img src="videos/posters/ugc-03.webp" alt="Product visual preview" loading="lazy" decoding="async"><div class="lp-capability-content"><span class="lp-capability-num">03</span><div><h3>PRODUCT VISUALS</h3><p>Campaign photography, social assets, and product worlds.</p></div></div></article>
+            <article class="lp-capability" tabindex="0"><img src="videos/posters/ugc-04.webp" alt="Creative strategy preview" loading="lazy" decoding="async"><div class="lp-capability-content"><span class="lp-capability-num">04</span><div><h3>CREATIVE STRATEGY</h3><p>Hooks, concepts, positioning, and creative testing.</p></div></div></article>
+          </div>
+        </section>
+        <section class="lp-strategy-section" id="lp-about">
+          <p class="lp-kicker">WHY LOGICPRIMAL</p><h2 class="lp-title">Think. Build. <em>Test.</em></h2><p class="lp-lede">I approach creative problems like systems: understand the behavior, build the hypothesis, and compare what earns attention.</p>
+          <div class="lp-principles"><article class="lp-principle"><strong>01 — THINK</strong><h3>Understand</h3><p>Understand the product, audience, and desired behavior before making the first frame.</p></article><article class="lp-principle"><strong>02 — BUILD</strong><h3>Make</h3><p>Turn the hypothesis into creative that feels native, clear, and commercially useful.</p></article><article class="lp-principle"><strong>03 — TEST</strong><h3>Compare</h3><p>Compare hooks, concepts, and formats so taste becomes a repeatable learning loop.</p></article></div>
+        </section>
+        <section class="lp-strategy-section" id="lp-audiences">
+          <p class="lp-kicker">BUILT FOR BRANDS THAT NEED ATTENTION</p><h2 class="lp-title">Make the right audience <em>see themselves.</em></h2>
+          <div class="lp-audience-grid"><article class="lp-audience"><h3>HOTELS</h3><p>Make the experience desirable before the guest arrives.</p></article><article class="lp-audience"><h3>RESTAURANTS</h3><p>Turn food into visual appetite.</p></article><article class="lp-audience"><h3>D2C</h3><p>Turn products into scroll-stopping creative.</p></article><article class="lp-audience"><h3>STARTUPS</h3><p>Explain the idea before people lose interest.</p></article><article class="lp-audience"><h3>PERSONAL BRANDS</h3><p>Turn expertise into content people actually watch.</p></article></div>
+          <div class="lp-intake"><div><strong>HAVE SOMETHING WORTH SELLING?</strong><h3>START A PROJECT.</h3><p>Bring the product, the problem, and the ambition.</p></div><a class="lp-link" href="#contact">SEND PROJECT →</a></div>
+        </section>
+        <section class="lp-strategy-section" id="lp-scale">
+          <p class="lp-kicker">PROJECT SCALE</p><h2 class="lp-title">Choose the creative system <em>you need.</em></h2>
+          <div class="lp-scale-grid"><article class="lp-scale"><h3>SINGLE ASSET</h3><p>One focused creative for one clear commercial job.</p></article><article class="lp-scale"><h3>CAMPAIGN</h3><p>Multiple concepts, variations, and angles built to learn.</p></article><article class="lp-scale"><h3>CREATIVE SYSTEM</h3><p>Ongoing production and testing that compounds over time.</p></article></div>
+        </section>
+      </div>
+    </div>
+  `;
+
+  function addExtraFormFields() {
+    const form = document.querySelector('form[aria-label="LogicPrimal lead inquiry form"]');
+    if (!form || form.querySelector('.lp-form-extra')) return;
+    const extra = document.createElement('div');
+    extra.className = 'lp-form-extra';
+    extra.innerHTML = `
+      <label>BRAND<input name="brand" autocomplete="organization" placeholder="Brand or company" /></label>
+      <label>WEBSITE / INSTAGRAM<input name="website_or_instagram" placeholder="https:// or @handle" /></label>
+      <label>TIMELINE<select name="timeline"><option value="">When do you want to start?</option><option>ASAP</option><option>Within 30 days</option><option>Within 60 days</option><option>Exploring</option></select></label>
+      <label>PROJECT SCALE<select name="project_scale"><option value="Single asset">Single asset</option><option value="Campaign">Campaign</option><option value="Creative system">Creative system</option></select></label>
+    `;
+    const textarea = form.querySelector('textarea');
+    if (textarea) {
+      const textareaField = textarea.closest('label') || textarea.parentNode;
+      textareaField.parentNode.insertBefore(extra, textareaField);
+    }
+  }
+
+  function inject() {
+    if (document.querySelector('#lp-strategy-sections')) return true;
+    const ugc = document.querySelector('#ugc');
+    if (!ugc) return false;
+    const style = document.createElement('style');
+    style.setAttribute('data-logicalprimal-strategy', 'true');
+    style.textContent = strategyStyles;
+    document.head.appendChild(style);
+    ugc.insertAdjacentHTML('afterend', strategyHtml);
+    document.querySelectorAll('.lp-lab-step').forEach(function (step) {
+      step.addEventListener('click', function () {
+        document.querySelectorAll('.lp-lab-step').forEach(function (item) { item.setAttribute('aria-pressed', item === step ? 'true' : 'false'); });
+        const output = document.querySelector('[data-lab-output]');
+        if (output) output.textContent = step.getAttribute('data-lab-detail') || '';
+      });
+    });
+    addExtraFormFields();
+    return true;
+  }
+
+  let attempts = 0;
+  const waitForApp = setInterval(function () {
+    attempts += 1;
+    if (inject() || attempts > 80) clearInterval(waitForApp);
+  }, 100);
+})();
