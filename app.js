@@ -4000,6 +4000,15 @@ void main() {
         if (output) output.textContent = step.getAttribute('data-lab-detail') || '';
       });
     });
+    document.querySelectorAll('.lp-jumpbar a[href^="#"]').forEach(function (link) {
+      link.addEventListener('click', function (event) {
+        const target = document.querySelector(link.getAttribute('href'));
+        if (!target) return;
+        event.preventDefault();
+        history.pushState(null, '', link.getAttribute('href'));
+        target.scrollIntoView({behavior: 'smooth', block: 'start'});
+      });
+    });
     addExtraFormFields();
     return true;
   }
